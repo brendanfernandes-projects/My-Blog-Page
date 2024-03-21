@@ -184,17 +184,19 @@ def get_all_posts():
 def show_post(post_id):
     requested_post = db.get_or_404(BlogPost, post_id)
     comment_form = CommentForm()
+
+    if not current_user.is_authenticated:
+        flash("Please sign in to leave a comment")
     if comment_form.validate_on_submit():
-        if not current_user.is_authenticated:
-            flash("Please sign in to leave a comment")
-            return redirect(url_for("login"))
         new_comment = Comment(
             text=comment_form.comment_text.data,
             comment_author=current_user,
             parent_post=requested_post
         )
         db.session.add(new_comment)
+
         db.session.commit()
+        return render_template("post.html", post=requested_post, form=comment_form)
 
     return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form)
 
